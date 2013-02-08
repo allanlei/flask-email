@@ -782,6 +782,85 @@ class SMTPBackendTests(BaseEmailBackendTests, TestCase):
         backend = SMTPMail(app, username='', password='')
         self.assertEqual(backend.username, '')
         self.assertEqual(backend.password, '')
+
+
+class FakeRestServer(asyncore.dispatcher, threading.Thread):
+    def __init__(self, host, port):
+        threading.Thread.__init__(self)
+        asyncore.dispatcher.__init__(self)
+        self.active = False
+        self.active_lock = threading.Lock()
+        app = Flask(__name__)
+        self.app = app
+
+        @app.route('/')
+        def hello_world():
+            return 'Hello World!'
+
+    def start(self):
+        assert not self.active
+        self.__flag = threading.Event()
+        threading.Thread.start(self)
+        self.__flag.wait()
+
+    def run(self):
+        self.active = True
+        self.__flag.set()
+        while self.active:
+            self.active_lock.acquire()
+            self.app.run()
+            self.active_lock.release()
+        # asyncore.close_all()
+
+    def stop(self):
+        assert self.active
+        self.active = False
+        self.join()
+
+
+class RestBackendTests(BaseEmailBackendTests, TestCase):
+    email_backend = 'flask.ext.email.backends.rest.Mail'
+    EMAIL_HOST = '127.0.0.1'
+    EMAIL_PORT = 2525
+
+    @classmethod
+    def setUpClass(cls):
+        cls.server = FakeRestServer(cls.EMAIL_HOST, cls.EMAIL_PORT)
+        cls.server.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.server.stop()
+
+    # def setUp(self):
+    #     super(SMTPBackendTests, self).setUp()
+    #     self.server.flush_sink()
+
+    # def tearDown(self):
+    #     self.server.flush_sink()
+    #     super(SMTPBackendTests, self).tearDown()
+
+
+    # @override_settings(EMAIL_HOST_USER="not empty username",
+    #                     EMAIL_HOST_PASSWORD="not empty password")
+    # def test_email_authentication_use_settings(self):
+    #     backend = SMTPMail(app)
+    #     self.assertEqual(backend.username, 'not empty username')
+    #     self.assertEqual(backend.password, 'not empty password')
+
+    # @override_settings(EMAIL_HOST_USER="not empty username",
+    #                     EMAIL_HOST_PASSWORD="not empty password")
+    # def test_email_authentication_override_settings(self):
+    #     backend = SMTPMail(app, username='username', password='password')
+    #     self.assertEqual(backend.username, 'username')
+    #     self.assertEqual(backend.password, 'password')
+
+    # @override_settings(EMAIL_HOST_USER="not empty username",
+    #                     EMAIL_HOST_PASSWORD="not empty password")
+    # def test_email_disabled_authentication(self):
+    #     backend = SMTPMail(app, username='', password='')
+    #     self.assertEqual(backend.username, '')
+    #     self.assertEqual(backend.password, '')
             
 if __name__ == '__main__':
     unittest.main()
