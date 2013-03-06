@@ -4,6 +4,9 @@ Backend for test environment.
 import flask_email as mail
 from .base import BaseMail
 
+
+outbox = []
+
 class Mail(BaseMail):
     """A email backend for use during test sessions.
 
@@ -13,11 +16,14 @@ class Mail(BaseMail):
     The dummy outbox is accessible through the outbox instance attribute.
     """
     def init_app(self, app, **kwargs):
-        if not hasattr(mail, 'outbox'):
-            mail.outbox = []
         super(Mail, self).init_app(app, **kwargs)
+
+    @property
+    def outbox(self):
+        return outbox
 
     def send_messages(self, messages):
         """Redirect messages to the dummy outbox"""
-        mail.outbox.extend(messages)
+        global outbox
+        outbox.extend(messages)
         return len(messages)
