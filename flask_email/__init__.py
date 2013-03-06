@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     flask.ext.email
-    ~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~
 
     Flask extension for sending email.
 
@@ -25,10 +25,17 @@ from .message import (
     SafeMIMEText, SafeMIMEMultipart,
     DEFAULT_ATTACHMENT_MIME_TYPE, make_msgid,
     BadHeaderError, forbid_multi_line_headers)
+from .backends.console import Mail as ConsoleMail
+from .backends.dummy import Mail as DummyMail
+from .backends.filebased import Mail as FilebasedMail
+from .backends.locmem import Mail as LocmemMail
+from .backends.smtp import Mail as SMTPMail
+from .backends.rest import Mail as RESTMail
 
 
-def get_connection(backend=None, fail_silently=False, **kwds):
-    """Load an email backend and return an instance of it.
+def get_connection(backend=None, fail_silently=False, **kwargs):
+    """
+    Load an email backend and return an instance of it.
 
     If backend is None (default) EMAIL_BACKEND is used.
 
@@ -47,7 +54,7 @@ def get_connection(backend=None, fail_silently=False, **kwds):
     except AttributeError:
         raise Exception(('Module "%s" does not define a '
                                     '"%s" class' % (mod_name, klass_name)))
-    return klass(app, fail_silently=fail_silently, **kwds)
+    return klass(app, fail_silently=fail_silently, **kwargs)
 
 
 def send_mail(subject, message, from_email, recipient_list,

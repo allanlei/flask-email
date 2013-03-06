@@ -4,8 +4,10 @@ class BaseMail(object):
     """
     Base class for email backend implementations.
 
-    Subclasses must at least overwrite send_messages().
+    Subclasses must at least overwrite :meth:`send_messages`.
     """
+    # TODO: Add threadsafe warning
+    
     def __init__(self, app=None, **kwargs):
         if app is not None: 
             self.init_app(app, **kwargs)
@@ -19,14 +21,11 @@ class BaseMail(object):
         at configuration time.
 
         :param app: Flask application instance
-        :param fail_silently: Email fails silently on errors
+        :param bool fail_silently: Email fails silently on errors
         """
         self.fail_silently = fail_silently
 
         self.app = app
-        # register extension with app
-        self.app.extensions = getattr(app, 'extensions', {})
-        self.app.extensions['email'] = self
 
 
     def open(self):
@@ -40,7 +39,7 @@ class BaseMail(object):
 
         This method can be called by applications to force a single
         network connection to be used when sending mails. See the
-        send_messages() method of the SMTP backend for a reference
+        :meth:`send_messages` method of the SMTP backend for a reference
         implementation.
 
         The default implementation does nothing.
@@ -55,5 +54,7 @@ class BaseMail(object):
         """
         Sends one or more EmailMessage objects and returns the number of email
         messages sent.
+
+        Not Implemented
         """
         raise NotImplementedError

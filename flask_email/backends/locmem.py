@@ -1,7 +1,7 @@
 """
 Backend for test environment.
 """
-import flask_email as mail
+import flask.ext.email.backends.locmem as mail
 from .base import BaseMail
 
 class Mail(BaseMail):
@@ -13,9 +13,9 @@ class Mail(BaseMail):
     The dummy outbox is accessible through the outbox instance attribute.
     """
     def init_app(self, app, **kwargs):
+        super(Mail, self).init_app(app, **kwargs)
         if not hasattr(mail, 'outbox'):
             mail.outbox = []
-        super(Mail, self).init_app(app, **kwargs)
 
     def send_messages(self, messages):
         """Redirect messages to the dummy outbox"""

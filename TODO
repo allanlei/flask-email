@@ -1,0 +1,12 @@
+TODO: Flask extension requirements
+3. APIs of approved extensions will be checked for the following characteristics:
+an approved extension has to support multiple applications running in the same Python process.
+it must be possible to use the factory pattern for creating applications.
+
+7. The extension must have documentation that uses one of the two Flask themes for Sphinx documentation.
+
+8. The setup.py description (and thus the PyPI description) has to link to the documentation, 
+website (if there is one) and there must be a link to automatically install the development 
+version (PackageName==dev).
+
+10. An extension currently has to support Python 2.5, 2.6 as well as Python 2.7

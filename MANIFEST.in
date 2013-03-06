@@ -3,7 +3,6 @@ include AUTHORS
 include INSTALL
 include LICENSE
 include MANIFEST.in
-include tests.py
 recursive-include docs *
 prune docs/_build
 prune docs/_themes/.git

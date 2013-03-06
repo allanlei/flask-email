@@ -13,8 +13,7 @@ Links
 
 * `documentation <http://packages.python.org/Flask-Email>`_
 """
-from setuptools import setup
-from setuptools import find_packages
+from setuptools import setup, find_packages
 
 
 setup(
@@ -27,14 +26,15 @@ setup(
     description='Flask extension for sending email',
     long_description=__doc__,
     packages=find_packages(),
+    test_suite='tests',
     zip_safe=False,
+    include_package_data=True,
     platforms='any',
     install_requires=[
-        'Flask>=0.9',
+        'Flask',
         'blinker',
     ],
     classifiers=[
-        'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',

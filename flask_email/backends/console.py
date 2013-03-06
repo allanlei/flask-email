@@ -1,19 +1,34 @@
-"""
-Email backend that writes messages to console instead of sending them.
-"""
 import sys
 import threading
 
 from .base import BaseMail
 
 class Mail(BaseMail):
-    def init_app(self, app, **kwargs):
+    """
+    Email backend that writes messages to console instead of sending them.
+
+    :param app: Flask application instance
+    :param \*\*kwargs: Options to be passed to :meth:`init_app`
+    """
+
+    def init_app(self, app, stream=None, **kwargs):
+        """
+        :arg app: Flask application instance
+        :keyword stream: Stream to write to
+        :type stream: file-like object, default ``sys.stdout``
+        :param \*\*kwargs: Ignorable options
+        """
         self.stream = kwargs.pop('stream', sys.stdout)
         self._lock = threading.RLock()
         super(Mail, self).init_app(app, **kwargs)
 
     def send_messages(self, email_messages):
-        """Write all messages to the stream in a thread-safe way."""
+        """
+        Write all messages to the stream in a thread-safe way.
+
+        :returns: Number of messages sent
+        :rtype: int
+        """
         if not email_messages:
             return
         self._lock.acquire()
