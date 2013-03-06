@@ -1,5 +1,5 @@
 """
-SMTP email backend class.
+Send email via SMTP
 """
 import smtplib
 import socket

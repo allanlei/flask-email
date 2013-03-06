@@ -1,13 +1,19 @@
-"""
-Email backend that writes messages to a file.
-"""
 import datetime
 import os
 
 from .console import Mail as ConsoleMail
 
 class Mail(ConsoleMail):
+    """
+    Email backend that writes messages to a file.
+    """
+
     def init_app(self, app, **kwargs):
+        """
+        :param app: Flask application instance
+        :param file_path: File like object. Default: `  `EMAIL_FILE_PATH``
+        :param \*\*kwargs: Ignorable options
+        """
         self._fname = None
         if 'file_path' in kwargs:
             self.file_path = kwargs.pop('file_path')
