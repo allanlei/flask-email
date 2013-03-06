@@ -6,6 +6,8 @@ class BaseMail(object):
 
     Subclasses must at least overwrite send_messages().
     """
+    # TODO: Add threadsafe warning
+    
     def __init__(self, app=None, **kwargs):
         if app is not None: 
             self.init_app(app, **kwargs)
@@ -24,9 +26,11 @@ class BaseMail(object):
         self.fail_silently = fail_silently
 
         self.app = app
+
         # register extension with app
-        self.app.extensions = getattr(app, 'extensions', {})
-        self.app.extensions['email'] = self
+        # TODO: Only set as extension if init from get_connection()
+        # self.app.extensions = getattr(app, 'extensions', {})
+        # self.app.extensions['email'] = self
 
 
     def open(self):
