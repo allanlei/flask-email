@@ -1,7 +1,7 @@
 """
 Backend for test environment.
 """
-import flask.ext.email as mail
+import flask.ext.email.backends.locmem as mail
 from .base import BaseMail
 
 class Mail(BaseMail):

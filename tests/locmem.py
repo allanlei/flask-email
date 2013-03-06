@@ -3,7 +3,7 @@ from __future__ import with_statement
 
 from flask import current_app as app
 from flask.ext.email.backends.locmem import Mail
-import flask.ext.email as mail
+import flask.ext.email.backends.locmem as mail
 from flask.ext.email.message import EmailMessage
 
 from . import BaseEmailBackendTests, FlaskTestCase
