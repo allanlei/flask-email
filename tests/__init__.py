@@ -127,7 +127,7 @@ class GeneralEmailBackendTests(FlaskTestCase):
         # Send using non-default connection
         connection = get_connection('tests.CustomMail')
         send_mail('Subject', 'Content', 'from@example.com', ['to@example.com'], connection=connection)
-        self.assertEqual(self.app.extensions['email'].outbox, [])
+        self.assertEqual(connection.outbox, [])
         self.assertEqual(len(connection.outbox), 1)
         self.assertEqual(connection.outbox[0].subject, 'Subject')
 
@@ -136,20 +136,20 @@ class GeneralEmailBackendTests(FlaskTestCase):
                 ('Subject1', 'Content1', 'from1@example.com', ['to1@example.com']),
                 ('Subject2', 'Content2', 'from2@example.com', ['to2@example.com']),
             ], connection=connection)
-        self.assertEqual(self.app.extensions['email'].outbox, [])
+        self.assertEqual(connection.outbox, [])
         self.assertEqual(len(connection.outbox), 2)
         self.assertEqual(connection.outbox[0].subject, 'Subject1')
         self.assertEqual(connection.outbox[1].subject, 'Subject2')
 
         connection = get_connection('tests.CustomMail')
         mail_admins('Admin message', 'Content', connection=connection)
-        self.assertEqual(self.app.extensions['email'].outbox, [])
+        self.assertEqual(connection.outbox, [])
         self.assertEqual(len(connection.outbox), 1)
         self.assertEqual(connection.outbox[0].subject, '[Flask] Admin message')
 
         connection = get_connection('tests.CustomMail')
         mail_managers('Manager message', 'Content', connection=connection)
-        self.assertEqual(self.app.extensions['email'].outbox, [])
+        self.assertEqual(connection.outbox, [])
         self.assertEqual(len(connection.outbox), 1)
         self.assertEqual(connection.outbox[0].subject, '[Flask] Manager message')
 
