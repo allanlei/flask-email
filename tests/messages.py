@@ -171,7 +171,7 @@ class MessageTests(FlaskTestCase):
         self.assertEqual(msg.message().get_payload(1).as_string(), 'Content-Type: text/html; charset="iso-8859-1"\nMIME-Version: 1.0\nContent-Transfer-Encoding: quoted-printable\n\n<p>Firstname S=FCrname is a <strong>great</strong> guy.</p>')
 
     def test_attachments(self):
-        """Regression test for #9367"""
+        """Regression test for Django #9367"""
         headers = {"Date": "Fri, 09 Nov 2001 01:08:47 -0000", "Message-ID": "foo"}
         subject, from_email, to = 'hello', 'from@example.com', 'to@example.com'
         text_content = 'This is an important message.'

@@ -2,6 +2,7 @@
 from __future__ import with_statement
 
 from flask import Flask, current_app as app
+import flask_email as mail
 from flask.ext.email.backends.base import BaseMail
 from flask.ext.email.backends.console import Mail as ConsoleMail
 from flask.ext.email.backends.smtp import Mail as SMTPMail
@@ -56,11 +57,11 @@ class override_settings(object):
 class CustomMail(BaseMail):
     def __init__(self, *args, **kwargs):
         super(CustomMail, self).__init__(*args, **kwargs)
-        self.outbox = []
+        self.test_outbox = []
 
     def send_messages(self, email_messages):
         # Messages are stored in a instance variable for testing.
-        self.outbox.extend(email_messages)
+        self.test_outbox.extend(email_messages)
         return len(email_messages)
 
 
@@ -69,7 +70,6 @@ class FlaskTestCase(unittest.TestCase):
     DEFAULT_FROM_EMAIL = 'support@mysite.com'
 
     def setUp(self):
-
         self.app = Flask(__name__)
         self.app.config.from_object(self)
         self.assertTrue(self.app.testing)
@@ -99,10 +99,10 @@ class GeneralEmailBackendTests(FlaskTestCase):
     def test_custom_backend(self):
         """Test custom backend defined in this suite."""
         conn = get_connection('tests.CustomMail')
-        self.assertTrue(hasattr(conn, 'outbox'))
+        self.assertTrue(hasattr(conn, 'test_outbox'))
         email = EmailMessage('Subject', 'Content', 'bounce@example.com', ['to@example.com'], headers={'From': 'from@example.com'})
         conn.send_messages([email])
-        self.assertEqual(len(conn.outbox), 1)
+        self.assertEqual(len(conn.test_outbox), 1)
 
     def test_backend_arg(self):
         """Test backend argument of get_connection()"""
@@ -123,35 +123,36 @@ class GeneralEmailBackendTests(FlaskTestCase):
         MANAGERS=[('nobody', 'nobody@example.com')])
     def test_connection_arg(self):
         """Test connection argument to send_mail(), et. al."""
+        mail.outbox = []
 
         # Send using non-default connection
         connection = get_connection('tests.CustomMail')
         send_mail('Subject', 'Content', 'from@example.com', ['to@example.com'], connection=connection)
-        self.assertEqual(connection.outbox, [])
-        self.assertEqual(len(connection.outbox), 1)
-        self.assertEqual(connection.outbox[0].subject, 'Subject')
+        self.assertEqual(mail.outbox, [])
+        self.assertEqual(len(connection.test_outbox), 1)
+        self.assertEqual(connection.test_outbox[0].subject, 'Subject')
 
         connection = get_connection('tests.CustomMail')
         send_mass_mail([
                 ('Subject1', 'Content1', 'from1@example.com', ['to1@example.com']),
                 ('Subject2', 'Content2', 'from2@example.com', ['to2@example.com']),
             ], connection=connection)
-        self.assertEqual(connection.outbox, [])
-        self.assertEqual(len(connection.outbox), 2)
-        self.assertEqual(connection.outbox[0].subject, 'Subject1')
-        self.assertEqual(connection.outbox[1].subject, 'Subject2')
+        self.assertEqual(mail.outbox, [])
+        self.assertEqual(len(connection.test_outbox), 2)
+        self.assertEqual(connection.test_outbox[0].subject, 'Subject1')
+        self.assertEqual(connection.test_outbox[1].subject, 'Subject2')
 
         connection = get_connection('tests.CustomMail')
         mail_admins('Admin message', 'Content', connection=connection)
-        self.assertEqual(connection.outbox, [])
-        self.assertEqual(len(connection.outbox), 1)
-        self.assertEqual(connection.outbox[0].subject, '[Flask] Admin message')
+        self.assertEqual(mail.outbox, [])
+        self.assertEqual(len(connection.test_outbox), 1)
+        self.assertEqual(connection.test_outbox[0].subject, '[Flask] Admin message')
 
         connection = get_connection('tests.CustomMail')
         mail_managers('Manager message', 'Content', connection=connection)
-        self.assertEqual(connection.outbox, [])
-        self.assertEqual(len(connection.outbox), 1)
-        self.assertEqual(connection.outbox[0].subject, '[Flask] Manager message')
+        self.assertEqual(mail.outbox, [])
+        self.assertEqual(len(connection.test_outbox), 1)
+        self.assertEqual(connection.test_outbox[0].subject, '[Flask] Manager message')
 
 
 class BaseEmailBackendTests(object):
