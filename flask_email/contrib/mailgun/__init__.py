@@ -1,4 +1,4 @@
-from ..backends import rest
+from flask.ext.email.backends import rest
 
 
 class BaseMail(object):
@@ -24,16 +24,3 @@ class BaseMail(object):
                     kwargs['data']['html'] = content
                     break
         return kwargs
-
-class Mail(BaseMail, rest.Mail):
-    pass
-
-try:
-    import grequests
-    from ..backends import rest_async
-
-    class AsyncMail(BaseMail, rest_async.Mail):
-        pass
-
-except ImportError:
-    pass

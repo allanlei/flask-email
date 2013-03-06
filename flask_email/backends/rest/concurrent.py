@@ -7,7 +7,7 @@ import grequests
 warnings.warn('grequests has a problem running with Flask with the following \
     error gevent is only usable from a single thread', RuntimeWarning)
 
-from .rest import Mail as RESTMail
+from . import Mail as RESTMail
 
 
 class Mail(RESTMail):

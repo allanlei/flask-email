@@ -28,7 +28,8 @@ from .message import (
 
 
 def get_connection(backend=None, fail_silently=False, **kwargs):
-    """Load an email backend and return an instance of it.
+    """
+    Load an email backend and return an instance of it.
 
     If backend is None (default) EMAIL_BACKEND is used.
 
