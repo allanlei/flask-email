@@ -1,7 +1,7 @@
 """
 Backend for test environment.
 """
-import flask_email as mail
+import flask.ext.email as mail
 from .base import BaseMail
 
 class Mail(BaseMail):

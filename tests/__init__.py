@@ -2,7 +2,7 @@
 from __future__ import with_statement
 
 from flask import Flask, current_app as app
-import flask_email as mail
+import flask.ext.email as mail
 from flask.ext.email.backends.base import BaseMail
 from flask.ext.email.backends.console import Mail as ConsoleMail
 from flask.ext.email.backends.smtp import Mail as SMTPMail
