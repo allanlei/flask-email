@@ -5,9 +5,9 @@ from flask import current_app as app
 from flask.ext.email.backends.locmem import Mail
 from flask.ext.email.message import EmailMessage
 
-from . import BaseEmailBackendTests, TestCase
+from . import BaseEmailBackendTests, FlaskTestCase
 
-class LocmemBackendTests(BaseEmailBackendTests, TestCase):
+class LocmemBackendTests(BaseEmailBackendTests, FlaskTestCase):
     email_backend = 'flask.ext.email.backends.locmem.Mail'
 
     def get_mailbox_content(self):

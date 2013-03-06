@@ -9,9 +9,9 @@ import os
 import shutil
 import tempfile
 
-from . import BaseEmailBackendTests, TestCase, override_settings
+from . import BaseEmailBackendTests, FlaskTestCase, override_settings
 
-class FileBackendTests(BaseEmailBackendTests, TestCase):
+class FileBackendTests(BaseEmailBackendTests, FlaskTestCase):
     email_backend = 'flask.ext.email.backends.filebased.Mail'
 
     def setUp(self):

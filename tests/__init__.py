@@ -67,8 +67,7 @@ class CustomMail(BaseMail):
 
 
 
-class TestCase(unittest.TestCase):
-
+class FlaskTestCase(unittest.TestCase):
     TESTING = True
     DEFAULT_FROM_EMAIL = "support@mysite.com"
 
@@ -85,7 +84,6 @@ class TestCase(unittest.TestCase):
         self.ctx.push()
 
     def tearDown(self):
-
         self.ctx.pop()
 
 

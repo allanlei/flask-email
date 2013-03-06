@@ -9,7 +9,7 @@ import smtpd
 import threading
 import asyncore
 
-from . import BaseEmailBackendTests, TestCase, override_settings
+from . import BaseEmailBackendTests, FlaskTestCase, override_settings
 
 class FakeSMTPServer(smtpd.SMTPServer, threading.Thread):
     """
@@ -67,7 +67,7 @@ class FakeSMTPServer(smtpd.SMTPServer, threading.Thread):
         self.join()
 
 
-class SMTPBackendTests(BaseEmailBackendTests, TestCase):
+class SMTPBackendTests(BaseEmailBackendTests, FlaskTestCase):
     email_backend = 'flask.ext.email.backends.smtp.Mail'
     EMAIL_HOST = '127.0.0.1'
     EMAIL_PORT = 2525

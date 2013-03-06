@@ -18,10 +18,10 @@ import shutil
 import tempfile
 from functools import wraps
 
-from . import TestCase, override_settings
+from . import FlaskTestCase, override_settings
 
 
-class MessageTests(TestCase):
+class MessageTests(FlaskTestCase):
     """
     Non-backend specific tests.
     """

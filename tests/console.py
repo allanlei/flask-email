@@ -8,9 +8,9 @@ import sys
 from StringIO import StringIO
 from functools import wraps
 
-from . import BaseEmailBackendTests, TestCase
+from . import BaseEmailBackendTests, FlaskTestCase
 
-class ConsoleBackendTests(BaseEmailBackendTests, TestCase):
+class ConsoleBackendTests(BaseEmailBackendTests, FlaskTestCase):
     email_backend = 'flask.ext.email.backends.console.Mail'
 
     def setUp(self):
