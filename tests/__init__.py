@@ -8,8 +8,7 @@ from flask.ext.email.backends.smtp import Mail as SMTPMail
 from flask.ext.email.backends.filebased import Mail as FilebasedMail
 from flask.ext.email.backends.locmem import Mail as LocMemMail
 from flask.ext.email.backends.dummy import Mail as DummyMail
-from flask.ext.email.message import EmailMessage, EmailMultiAlternatives
-from flask.ext.email.message import BadHeaderError
+from flask.ext.email.message import EmailMessage
 from flask.ext.email import get_connection, send_mail, send_mass_mail, mail_managers, mail_admins
 
 import unittest
@@ -65,8 +64,6 @@ class CustomMail(BaseMail):
         return len(email_messages)
 
 
-
-
 class FlaskTestCase(unittest.TestCase):
     TESTING = True
     DEFAULT_FROM_EMAIL = "support@mysite.com"
@@ -85,6 +82,80 @@ class FlaskTestCase(unittest.TestCase):
 
     def tearDown(self):
         self.ctx.pop()
+
+class GeneralEmailBackendTests(FlaskTestCase):
+    def test_dummy_backend(self):
+        """
+        Make sure that dummy backends returns correct number of sent messages
+        """
+        connection = DummyMail()
+        email = EmailMessage('Subject', 'Content', 'bounce@example.com', ['to@example.com'], headers={'From': 'from@example.com'})
+        self.assertEqual(connection.send_messages([email, email, email]), 3)
+
+    def test_arbitrary_keyword(self):
+        """
+        Make sure that get_connection() accepts arbitrary keyword that might be
+        used with custom backends.
+        """
+        c = get_connection(fail_silently=True, foo='bar')
+        self.assertTrue(c.fail_silently)
+
+    def test_custom_backend(self):
+        """Test custom backend defined in this suite."""
+        conn = get_connection('tests.CustomMail')
+        self.assertTrue(hasattr(conn, 'outbox'))
+        email = EmailMessage('Subject', 'Content', 'bounce@example.com', ['to@example.com'], headers={'From': 'from@example.com'})
+        conn.send_messages([email])
+        self.assertEqual(len(conn.outbox), 1)
+
+    def test_backend_arg(self):
+        """Test backend argument of get_connection()"""
+        self.assertTrue(isinstance(get_connection('flask.ext.email.backends.smtp.Mail'), SMTPMail))
+        self.assertTrue(isinstance(get_connection('flask.ext.email.backends.locmem.Mail'), LocMemMail))
+        self.assertTrue(isinstance(get_connection('flask.ext.email.backends.dummy.Mail'), DummyMail))
+        self.assertTrue(isinstance(get_connection('flask.ext.email.backends.console.Mail'), ConsoleMail))
+        tmp_dir = tempfile.mkdtemp()
+        try:
+            self.assertTrue(isinstance(get_connection('flask.ext.email.backends.filebased.Mail', file_path=tmp_dir), FilebasedMail))
+        finally:
+            shutil.rmtree(tmp_dir)
+        self.assertTrue(isinstance(get_connection(), LocMemMail))
+
+    @override_settings(
+        EMAIL_BACKEND='flask.ext.email.backends.locmem.Mail',
+        ADMINS=[('nobody', 'nobody@example.com')],
+        MANAGERS=[('nobody', 'nobody@example.com')])
+    def test_connection_arg(self):
+        """Test connection argument to send_mail(), et. al."""
+
+        # Send using non-default connection
+        connection = get_connection('tests.CustomMail')
+        send_mail('Subject', 'Content', 'from@example.com', ['to@example.com'], connection=connection)
+        self.assertEqual(self.app.extensions['email'].outbox, [])
+        self.assertEqual(len(connection.outbox), 1)
+        self.assertEqual(connection.outbox[0].subject, 'Subject')
+
+        connection = get_connection('tests.CustomMail')
+        send_mass_mail([
+                ('Subject1', 'Content1', 'from1@example.com', ['to1@example.com']),
+                ('Subject2', 'Content2', 'from2@example.com', ['to2@example.com']),
+            ], connection=connection)
+        self.assertEqual(self.app.extensions['email'].outbox, [])
+        self.assertEqual(len(connection.outbox), 2)
+        self.assertEqual(connection.outbox[0].subject, 'Subject1')
+        self.assertEqual(connection.outbox[1].subject, 'Subject2')
+
+        connection = get_connection('tests.CustomMail')
+        mail_admins('Admin message', 'Content', connection=connection)
+        self.assertEqual(self.app.extensions['email'].outbox, [])
+        self.assertEqual(len(connection.outbox), 1)
+        self.assertEqual(connection.outbox[0].subject, '[Flask] Admin message')
+
+        connection = get_connection('tests.CustomMail')
+        mail_managers('Manager message', 'Content', connection=connection)
+        self.assertEqual(self.app.extensions['email'].outbox, [])
+        self.assertEqual(len(connection.outbox), 1)
+        self.assertEqual(connection.outbox[0].subject, '[Flask] Manager message')
 
 
 class BaseEmailBackendTests(object):
