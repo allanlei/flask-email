@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-
 from __future__ import with_statement
-
-import base64
-import email
-import unittest
-import time
-import re
-from functools import wraps
 
 from flask import Flask, current_app as app
 from flask.ext.email.backends.base import BaseMail
@@ -15,21 +7,17 @@ from flask.ext.email.backends.console import Mail as ConsoleMail
 from flask.ext.email.backends.smtp import Mail as SMTPMail
 from flask.ext.email.backends.filebased import Mail as FilebasedMail
 from flask.ext.email.backends.locmem import Mail as LocMemMail
-# from flask.ext.email.backends.rest import Mail as RESTMail
 from flask.ext.email.backends.dummy import Mail as DummyMail
 from flask.ext.email.message import EmailMessage, EmailMultiAlternatives
 from flask.ext.email.message import BadHeaderError
 from flask.ext.email import get_connection, send_mail, send_mass_mail, mail_managers, mail_admins
 
-import asyncore
+import unittest
 import email
-import os
 import shutil
-import smtpd
-import sys
-from StringIO import StringIO
 import tempfile
-import threading
+from functools import wraps
+
 
 class override_settings(object):
     """
@@ -561,221 +549,5 @@ class BaseEmailBackendTests(object):
         self.assertEqual(message.get('from'), "tester")
         self.assertEqual(message.get('to'), "django")
 
-
-class LocmemBackendTests(BaseEmailBackendTests, TestCase):
-    email_backend = 'flask.ext.email.backends.locmem.Mail'
-
-    def get_mailbox_content(self):
-        return [m.message() for m in self.app.extensions['email'].outbox]
-
-    def flush_mailbox(self):
-        self.app.extensions['email'].outbox = []
-
-    def test_locmem_shared_messages(self):
-        """
-        Make sure that the locmen backend populates the outbox.
-        """
-        connection = LocMemMail()
-        connection2 = LocMemMail()
-        email = EmailMessage('Subject', 'Content', 'bounce@example.com', ['to@example.com'], headers={'From': 'from@example.com'})
-        connection.send_messages([email])
-        connection2.send_messages([email])
-        self.assertEqual(len(self.app.extensions['email'].outbox), 2)
-
-
-class FileBackendTests(BaseEmailBackendTests, TestCase):
-    email_backend = 'flask.ext.email.backends.filebased.Mail'
-
-    def setUp(self):
-        self.tmp_dir = tempfile.mkdtemp()
-        self.addCleanup(shutil.rmtree, self.tmp_dir)
-        # self.settings_override = override_settings(EMAIL_FILE_PATH=self.tmp_dir)
-        # self.settings_override.enable()
-        self.EMAIL_FILE_PATH = self.tmp_dir
-        super(FileBackendTests, self).setUp()
-
-    def tearDown(self):
-        # self.settings_override.disable()
-        super(FileBackendTests, self).tearDown()
-
-    def flush_mailbox(self):
-        for filename in os.listdir(self.tmp_dir):
-            os.unlink(os.path.join(self.tmp_dir, filename))
-
-    def get_mailbox_content(self):
-        messages = []
-        for filename in os.listdir(self.tmp_dir):
-            session = open(os.path.join(self.tmp_dir, filename)).read().split('\n' + ('-' * 79) + '\n')
-            messages.extend(email.message_from_string(m) for m in session if m)
-        return messages
-
-    def test_file_sessions(self):
-        """Make sure opening a connection creates a new file"""
-        msg = EmailMessage('Subject', 'Content', 'bounce@example.com', ['to@example.com'], headers={'From': 'from@example.com'})
-        connection = get_connection()
-        connection.send_messages([msg])
-
-        self.assertEqual(len(os.listdir(self.tmp_dir)), 1)
-        message = email.message_from_file(open(os.path.join(self.tmp_dir, os.listdir(self.tmp_dir)[0])))
-        self.assertEqual(message.get_content_type(), 'text/plain')
-        self.assertEqual(message.get('subject'), 'Subject')
-        self.assertEqual(message.get('from'), 'from@example.com')
-        self.assertEqual(message.get('to'), 'to@example.com')
-
-        connection2 = get_connection()
-        connection2.send_messages([msg])
-        self.assertEqual(len(os.listdir(self.tmp_dir)), 2)
-
-        connection.send_messages([msg])
-        self.assertEqual(len(os.listdir(self.tmp_dir)), 2)
-
-        msg.connection = get_connection()
-        self.assertTrue(connection.open())
-        msg.send()
-        self.assertEqual(len(os.listdir(self.tmp_dir)), 3)
-        msg.send()
-        self.assertEqual(len(os.listdir(self.tmp_dir)), 3)
-
-
-class ConsoleBackendTests(BaseEmailBackendTests, TestCase):
-    email_backend = 'flask.ext.email.backends.console.Mail'
-
-    def setUp(self):
-        super(ConsoleBackendTests, self).setUp()
-        self.__stdout = sys.stdout
-        self.stream = sys.stdout = StringIO()
-
-    def tearDown(self):
-        del self.stream
-        sys.stdout = self.__stdout
-        del self.__stdout
-        super(ConsoleBackendTests, self).tearDown()
-
-    def flush_mailbox(self):
-        self.stream = sys.stdout = StringIO()
-
-    def get_mailbox_content(self):
-        messages = self.stream.getvalue().split('\n' + ('-' * 79) + '\n')
-        return [email.message_from_string(m) for m in messages if m]
-
-    def test_console_stream_kwarg(self):
-        """
-        Test that the console backend can be pointed at an arbitrary stream.
-        """
-        s = StringIO()
-        connection = get_connection(self.email_backend, stream=s)
-        send_mail('Subject', 'Content', 'from@example.com', ['to@example.com'], connection=connection)
-        self.assertTrue(s.getvalue().startswith('Content-Type: text/plain; charset="utf-8"\nMIME-Version: 1.0\nContent-Transfer-Encoding: 7bit\nSubject: Subject\nFrom: from@example.com\nTo: to@example.com\nDate: '))
-
-class FakeSMTPServer(smtpd.SMTPServer, threading.Thread):
-    """
-    Asyncore SMTP server wrapped into a thread. Based on DummyFTPServer from:
-    http://svn.python.org/view/python/branches/py3k/Lib/test/test_ftplib.py?revision=86061&view=markup
-    """
-
-    def __init__(self, *args, **kwargs):
-        threading.Thread.__init__(self)
-        smtpd.SMTPServer.__init__(self, *args, **kwargs)
-        self._sink = []
-        self.active = False
-        self.active_lock = threading.Lock()
-        self.sink_lock = threading.Lock()
-
-    def process_message(self, peer, mailfrom, rcpttos, data):
-        m = email.message_from_string(data)
-        maddr = email.Utils.parseaddr(m.get('from'))[1]
-        if mailfrom != maddr:
-            return "553 '%s' != '%s'" % (mailfrom, maddr)
-        self.sink_lock.acquire()
-        self._sink.append(m)
-        self.sink_lock.release()
-
-    def get_sink(self):
-        self.sink_lock.acquire()
-        try:
-            return self._sink[:]
-        finally:
-            self.sink_lock.release()
-
-    def flush_sink(self):
-        self.sink_lock.acquire()
-        self._sink[:] = []
-        self.sink_lock.release()
-
-    def start(self):
-        assert not self.active
-        self.__flag = threading.Event()
-        threading.Thread.start(self)
-        self.__flag.wait()
-
-    def run(self):
-        self.active = True
-        self.__flag.set()
-        while self.active and asyncore.socket_map:
-            self.active_lock.acquire()
-            asyncore.loop(timeout=0.1, count=1)
-            self.active_lock.release()
-        asyncore.close_all()
-
-    def stop(self):
-        assert self.active
-        self.active = False
-        self.join()
-
-
-class SMTPBackendTests(BaseEmailBackendTests, TestCase):
-    email_backend = 'flask.ext.email.backends.smtp.Mail'
-    EMAIL_HOST = '127.0.0.1'
-    EMAIL_PORT = 2525
-
-    @classmethod
-    def setUpClass(cls):
-        cls.server = FakeSMTPServer((cls.EMAIL_HOST, cls.EMAIL_PORT), None)
-        # cls.settings_override = override_settings(
-            # EMAIL_HOST="127.0.0.1",
-            # EMAIL_PORT=cls.server.socket.getsockname()[1])
-        # cls.settings_override.enable()
-        cls.server.start()
-
-    @classmethod
-    def tearDownClass(cls):
-        # cls.settings_override.disable()
-        cls.server.stop()
-
-    def setUp(self):
-        super(SMTPBackendTests, self).setUp()
-        self.server.flush_sink()
-
-    def tearDown(self):
-        self.server.flush_sink()
-        super(SMTPBackendTests, self).tearDown()
-
-    def flush_mailbox(self):
-        self.server.flush_sink()
-
-    def get_mailbox_content(self):
-        return self.server.get_sink()
-
-    @override_settings(EMAIL_HOST_USER="not empty username",
-                        EMAIL_HOST_PASSWORD="not empty password")
-    def test_email_authentication_use_settings(self):
-        backend = SMTPMail(app)
-        self.assertEqual(backend.username, 'not empty username')
-        self.assertEqual(backend.password, 'not empty password')
-
-    @override_settings(EMAIL_HOST_USER="not empty username",
-                        EMAIL_HOST_PASSWORD="not empty password")
-    def test_email_authentication_override_settings(self):
-        backend = SMTPMail(app, username='username', password='password')
-        self.assertEqual(backend.username, 'username')
-        self.assertEqual(backend.password, 'password')
-
-    @override_settings(EMAIL_HOST_USER="not empty username",
-                        EMAIL_HOST_PASSWORD="not empty password")
-    def test_email_disabled_authentication(self):
-        backend = SMTPMail(app, username='', password='')
-        self.assertEqual(backend.username, '')
-        self.assertEqual(backend.password, '')
-            
 if __name__ == '__main__':
     unittest.main()
