@@ -4,7 +4,7 @@ from __future__ import with_statement
 from flask.ext.email.message import EmailMessage
 from flask.ext.email import get_connection
 
-import email
+from email import message_from_string, message_from_file
 import os
 import shutil
 import tempfile
@@ -34,7 +34,7 @@ class FileBackendTests(BaseEmailBackendTests, FlaskTestCase):
         messages = []
         for filename in os.listdir(self.tmp_dir):
             session = open(os.path.join(self.tmp_dir, filename)).read().split('\n' + ('-' * 79) + '\n')
-            messages.extend(email.message_from_string(m) for m in session if m)
+            messages.extend(message_from_string(m) for m in session if m)
         return messages
 
     def test_file_sessions(self):
@@ -44,7 +44,7 @@ class FileBackendTests(BaseEmailBackendTests, FlaskTestCase):
         connection.send_messages([msg])
 
         self.assertEqual(len(os.listdir(self.tmp_dir)), 1)
-        message = email.message_from_file(open(os.path.join(self.tmp_dir, os.listdir(self.tmp_dir)[0])))
+        message = message_from_file(open(os.path.join(self.tmp_dir, os.listdir(self.tmp_dir)[0])))
         self.assertEqual(message.get_content_type(), 'text/plain')
         self.assertEqual(message.get('subject'), 'Subject')
         self.assertEqual(message.get('from'), 'from@example.com')

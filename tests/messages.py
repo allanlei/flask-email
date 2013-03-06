@@ -4,7 +4,7 @@ from __future__ import with_statement
 from flask.ext.email.message import EmailMessage, EmailMultiAlternatives
 from flask.ext.email.message import BadHeaderError
 
-import email
+from email import message_from_string
 
 from . import FlaskTestCase, override_settings
 
@@ -180,7 +180,7 @@ class MessageTests(FlaskTestCase):
         msg.attach_alternative(html_content, "text/html")
         msg.attach("an attachment.pdf", "%PDF-1.4.%...", mimetype="application/pdf")
         msg_str = msg.message().as_string()
-        message = email.message_from_string(msg_str)
+        message = message_from_string(msg_str)
         self.assertTrue(message.is_multipart())
         self.assertEqual(message.get_content_type(), 'multipart/mixed')
         self.assertEqual(message.get_default_type(), 'text/plain')
@@ -197,7 +197,7 @@ class MessageTests(FlaskTestCase):
         # Unicode in file name
         msg.attach(u"une pièce jointe.pdf", "%PDF-1.4.%...", mimetype="application/pdf")
         msg_str = msg.message().as_string()
-        message = email.message_from_string(msg_str)
+        message = message_from_string(msg_str)
         payload = message.get_payload()
         self.assertEqual(payload[1].get_filename(), u'une pièce jointe.pdf')
 

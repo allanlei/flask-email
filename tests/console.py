@@ -3,7 +3,7 @@ from __future__ import with_statement
 
 from flask.ext.email import get_connection, send_mail
 
-import email
+from email import message_from_string
 import sys
 from StringIO import StringIO
 from functools import wraps
@@ -29,7 +29,7 @@ class ConsoleBackendTests(BaseEmailBackendTests, FlaskTestCase):
 
     def get_mailbox_content(self):
         messages = self.stream.getvalue().split('\n' + ('-' * 79) + '\n')
-        return [email.message_from_string(m) for m in messages if m]
+        return [message_from_string(m) for m in messages if m]
 
     def test_console_stream_kwarg(self):
         """

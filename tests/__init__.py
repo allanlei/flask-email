@@ -13,7 +13,6 @@ from flask.ext.email.message import EmailMessage
 from flask.ext.email import get_connection, send_mail, send_mass_mail, mail_managers, mail_admins
 
 import unittest
-import email
 import shutil
 import tempfile
 from functools import wraps
