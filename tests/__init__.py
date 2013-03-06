@@ -263,7 +263,7 @@ class BaseEmailBackendTests(object):
 
     def test_message_cc_header(self):
         """
-        Regression test for #7722
+        Regression test for Django #7722
         """
         email = EmailMessage('Subject', 'Content', 'from@example.com', ['to@example.com'], cc=['cc@example.com'])
         get_connection().send_messages([email])
@@ -272,7 +272,7 @@ class BaseEmailBackendTests(object):
 
     def test_idn_send(self):
         """
-        Regression test for #14301
+        Regression test for Django #14301
         """
         self.assertTrue(send_mail('Subject', 'Content', 'from@öäü.com', [u'to@öäü.com']))
         message = self.get_the_message()
@@ -292,7 +292,7 @@ class BaseEmailBackendTests(object):
 
     def test_recipient_without_domain(self):
         """
-        Regression test for #15042
+        Regression test for Django #15042
         """
         self.assertTrue(send_mail("Subject", "Content", "tester", ["django"]))
         message = self.get_the_message()

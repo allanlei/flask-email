@@ -31,7 +31,7 @@ class MessageTests(FlaskTestCase):
         self.assertEqual(message['To'], 'to@example.com, other@example.com')
 
     def test_cc(self):
-        """Regression test for #7722"""
+        """Regression test for Django #7722"""
         email = EmailMessage('Subject', 'Content', 'from@example.com', ['to@example.com'], cc=['cc@example.com'])
         message = email.message()
         self.assertEqual(message['Cc'], 'cc@example.com')
@@ -189,7 +189,7 @@ class MessageTests(FlaskTestCase):
         self.assertEqual(payload[1].get_content_type(), 'application/pdf')
 
     def test_non_ascii_attachment_filename(self):
-        """Regression test for #14964"""
+        """Regression test for Django #14964"""
         headers = {"Date": "Fri, 09 Nov 2001 01:08:47 -0000", "Message-ID": "foo"}
         subject, from_email, to = 'hello', 'from@example.com', 'to@example.com'
         content = 'This is the message.'
