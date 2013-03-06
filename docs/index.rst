@@ -5,11 +5,11 @@
 
 .. module:: flask-email
 
-.. include:: ../README
+.. include:: ../README.rst
 
 TODO: Finish documentation
 
-.. include:: ../INSTALL
+.. include:: ../INSTALL.rst
 
 
 Usage
@@ -221,7 +221,7 @@ Extend
 .. autoclass:: flask.ext.email.backends.base.BaseMail
    :members:
 
-.. include:: ../CHANGES
+.. include:: ../CHANGES.rst
 
 Notes
 -----
