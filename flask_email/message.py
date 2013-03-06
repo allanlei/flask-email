@@ -166,6 +166,17 @@ class SafeMIMEMultipart(MIMEMultipart):
 class EmailMessage(object):
     """
     A container for email information.
+
+    :param subject: Email subject
+    :param body: Email body
+    :param from_email: Email address of sender
+    :param to: Email addresses of receivers
+    :type to: list
+    :param bcc: Blind carbon copy
+    :param connection: Instance of :class:`Mail`
+    :param attachments: Attachments to the email
+    :param headers: Headers for the email message
+    :param cc: Carbon copy email addresses
     """
     content_subtype = 'plain'
     mixed_subtype = 'mixed'

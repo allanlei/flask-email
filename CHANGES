@@ -1,11 +1,9 @@
-Flask-Email Changelog
-====================
+Changelog
+---------
 
+Version 1.4.3
+~~~~~~~~~~~~~
 
+Released Jan 9, 2013
 
-Version 1.5
----------------------
-
-Released Jan, 9 2013
-
- - Initial development
+ - Initial port of Django 1.4.3
