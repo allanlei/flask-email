@@ -27,7 +27,7 @@ from .message import (
     BadHeaderError, forbid_multi_line_headers)
 
 
-def get_connection(backend=None, fail_silently=False, **kwds):
+def get_connection(backend=None, fail_silently=False, **kwargs):
     """Load an email backend and return an instance of it.
 
     If backend is None (default) EMAIL_BACKEND is used.
@@ -47,7 +47,7 @@ def get_connection(backend=None, fail_silently=False, **kwds):
     except AttributeError:
         raise Exception(('Module "%s" does not define a '
                                     '"%s" class' % (mod_name, klass_name)))
-    return klass(app, fail_silently=fail_silently, **kwds)
+    return klass(app, fail_silently=fail_silently, **kwargs)
 
 
 def send_mail(subject, message, from_email, recipient_list,
