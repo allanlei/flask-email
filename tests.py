@@ -10,7 +10,6 @@ import re
 from functools import wraps
 
 from flask import Flask, current_app as app
-import flask_email as mail
 from flask.ext.email.backends.base import BaseMail
 from flask.ext.email.backends.console import Mail as ConsoleMail
 from flask.ext.email.backends.smtp import Mail as SMTPMail
@@ -70,11 +69,11 @@ class override_settings(object):
 class CustomMail(BaseMail):
     def __init__(self, *args, **kwargs):
         super(CustomMail, self).__init__(*args, **kwargs)
-        self.test_outbox = []
+        self.outbox = []
 
     def send_messages(self, email_messages):
         # Messages are stored in a instance variable for testing.
-        self.test_outbox.extend(email_messages)
+        self.outbox.extend(email_messages)
         return len(email_messages)
 
 
@@ -313,10 +312,10 @@ class MailTests(TestCase):
     def test_custom_backend(self):
         """Test custom backend defined in this suite."""
         conn = get_connection('tests.CustomMail')
-        self.assertTrue(hasattr(conn, 'test_outbox'))
+        self.assertTrue(hasattr(conn, 'outbox'))
         email = EmailMessage('Subject', 'Content', 'bounce@example.com', ['to@example.com'], headers={'From': 'from@example.com'})
         conn.send_messages([email])
-        self.assertEqual(len(conn.test_outbox), 1)
+        self.assertEqual(len(conn.outbox), 1)
 
     def test_backend_arg(self):
         """Test backend argument of get_connection()"""
@@ -338,36 +337,35 @@ class MailTests(TestCase):
         MANAGERS=[('nobody', 'nobody@example.com')])
     def test_connection_arg(self):
         """Test connection argument to send_mail(), et. al."""
-        mail.outbox = []
 
         # Send using non-default connection
         connection = get_connection('tests.CustomMail')
         send_mail('Subject', 'Content', 'from@example.com', ['to@example.com'], connection=connection)
-        self.assertEqual(mail.outbox, [])
-        self.assertEqual(len(connection.test_outbox), 1)
-        self.assertEqual(connection.test_outbox[0].subject, 'Subject')
+        self.assertEqual(self.app.extensions['email'].outbox, [])
+        self.assertEqual(len(connection.outbox), 1)
+        self.assertEqual(connection.outbox[0].subject, 'Subject')
 
         connection = get_connection('tests.CustomMail')
         send_mass_mail([
                 ('Subject1', 'Content1', 'from1@example.com', ['to1@example.com']),
                 ('Subject2', 'Content2', 'from2@example.com', ['to2@example.com']),
             ], connection=connection)
-        self.assertEqual(mail.outbox, [])
-        self.assertEqual(len(connection.test_outbox), 2)
-        self.assertEqual(connection.test_outbox[0].subject, 'Subject1')
-        self.assertEqual(connection.test_outbox[1].subject, 'Subject2')
+        self.assertEqual(self.app.extensions['email'].outbox, [])
+        self.assertEqual(len(connection.outbox), 2)
+        self.assertEqual(connection.outbox[0].subject, 'Subject1')
+        self.assertEqual(connection.outbox[1].subject, 'Subject2')
 
         connection = get_connection('tests.CustomMail')
         mail_admins('Admin message', 'Content', connection=connection)
-        self.assertEqual(mail.outbox, [])
-        self.assertEqual(len(connection.test_outbox), 1)
-        self.assertEqual(connection.test_outbox[0].subject, '[Flask] Admin message')
+        self.assertEqual(self.app.extensions['email'].outbox, [])
+        self.assertEqual(len(connection.outbox), 1)
+        self.assertEqual(connection.outbox[0].subject, '[Flask] Admin message')
 
         connection = get_connection('tests.CustomMail')
         mail_managers('Manager message', 'Content', connection=connection)
-        self.assertEqual(mail.outbox, [])
-        self.assertEqual(len(connection.test_outbox), 1)
-        self.assertEqual(connection.test_outbox[0].subject, '[Flask] Manager message')
+        self.assertEqual(self.app.extensions['email'].outbox, [])
+        self.assertEqual(len(connection.outbox), 1)
+        self.assertEqual(connection.outbox[0].subject, '[Flask] Manager message')
 
     def test_dont_mangle_from_in_body(self):
         # Regression for #13433 - Make sure that EmailMessage doesn't mangle
@@ -568,14 +566,10 @@ class LocmemBackendTests(BaseEmailBackendTests, TestCase):
     email_backend = 'flask.ext.email.backends.locmem.Mail'
 
     def get_mailbox_content(self):
-        return [m.message() for m in mail.outbox]
+        return [m.message() for m in self.app.extensions['email'].outbox]
 
     def flush_mailbox(self):
-        mail.outbox = []
-
-    def tearDown(self):
-        super(LocmemBackendTests, self).tearDown()
-        mail.outbox = []
+        self.app.extensions['email'].outbox = []
 
     def test_locmem_shared_messages(self):
         """
@@ -586,7 +580,7 @@ class LocmemBackendTests(BaseEmailBackendTests, TestCase):
         email = EmailMessage('Subject', 'Content', 'bounce@example.com', ['to@example.com'], headers={'From': 'from@example.com'})
         connection.send_messages([email])
         connection2.send_messages([email])
-        self.assertEqual(len(mail.outbox), 2)
+        self.assertEqual(len(self.app.extensions['email'].outbox), 2)
 
 
 class FileBackendTests(BaseEmailBackendTests, TestCase):
