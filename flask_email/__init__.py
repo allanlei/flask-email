@@ -25,6 +25,12 @@ from .message import (
     SafeMIMEText, SafeMIMEMultipart,
     DEFAULT_ATTACHMENT_MIME_TYPE, make_msgid,
     BadHeaderError, forbid_multi_line_headers)
+from .backends.console import Mail as ConsoleMail
+from .backends.dummy import Mail as DummyMail
+from .backends.filebased import Mail as FilebasedMail
+from .backends.locmem import Mail as LocmemMail
+from .backends.smtp import Mail as SMTPMail
+from .backends.rest import Mail as RESTMail
 
 
 def get_connection(backend=None, fail_silently=False, **kwargs):
