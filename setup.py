@@ -26,6 +26,7 @@ setup(
     description='Flask extension for sending email',
     long_description=__doc__,
     packages=find_packages(),
+    test_suite='tests',
     zip_safe=False,
     include_package_data=True,
     platforms='any',

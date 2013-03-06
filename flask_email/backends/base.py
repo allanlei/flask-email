@@ -27,11 +27,6 @@ class BaseMail(object):
 
         self.app = app
 
-        # register extension with app
-        # TODO: Only set as extension if init from get_connection()
-        # self.app.extensions = getattr(app, 'extensions', {})
-        # self.app.extensions['email'] = self
-
 
     def open(self):
         """Open a network connection.
