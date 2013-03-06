@@ -12,7 +12,7 @@ import tempfile
 from . import BaseEmailBackendTests, FlaskTestCase, override_settings
 
 class FileBackendTests(BaseEmailBackendTests, FlaskTestCase):
-    email_backend = 'flask.ext.email.backends.filebased.Mail'
+    EMAIL_BACKEND = 'flask.ext.email.backends.filebased.Mail'
 
     def setUp(self):
         self.tmp_dir = tempfile.mkdtemp()

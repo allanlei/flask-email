@@ -11,7 +11,7 @@ from functools import wraps
 from . import BaseEmailBackendTests, FlaskTestCase
 
 class ConsoleBackendTests(BaseEmailBackendTests, FlaskTestCase):
-    email_backend = 'flask.ext.email.backends.console.Mail'
+    EMAIL_BACKEND = 'flask.ext.email.backends.console.Mail'
 
     def setUp(self):
         super(ConsoleBackendTests, self).setUp()
@@ -36,6 +36,6 @@ class ConsoleBackendTests(BaseEmailBackendTests, FlaskTestCase):
         Test that the console backend can be pointed at an arbitrary stream.
         """
         s = StringIO()
-        connection = get_connection(self.email_backend, stream=s)
+        connection = get_connection(self.EMAIL_BACKEND, stream=s)
         send_mail('Subject', 'Content', 'from@example.com', ['to@example.com'], connection=connection)
         self.assertTrue(s.getvalue().startswith('Content-Type: text/plain; charset="utf-8"\nMIME-Version: 1.0\nContent-Transfer-Encoding: 7bit\nSubject: Subject\nFrom: from@example.com\nTo: to@example.com\nDate: '))

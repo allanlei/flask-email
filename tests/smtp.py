@@ -68,7 +68,7 @@ class FakeSMTPServer(smtpd.SMTPServer, threading.Thread):
 
 
 class SMTPBackendTests(BaseEmailBackendTests, FlaskTestCase):
-    email_backend = 'flask.ext.email.backends.smtp.Mail'
+    EMAIL_BACKEND = 'flask.ext.email.backends.smtp.Mail'
     EMAIL_HOST = '127.0.0.1'
     EMAIL_PORT = 2525
 

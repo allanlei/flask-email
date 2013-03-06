@@ -66,17 +66,13 @@ class CustomMail(BaseMail):
 
 class FlaskTestCase(unittest.TestCase):
     TESTING = True
-    DEFAULT_FROM_EMAIL = "support@mysite.com"
+    DEFAULT_FROM_EMAIL = 'support@mysite.com'
 
     def setUp(self):
 
         self.app = Flask(__name__)
         self.app.config.from_object(self)
-
         self.assertTrue(self.app.testing)
-
-        # self.mail = Mail(self.app)
-
         self.ctx = self.app.test_request_context()
         self.ctx.push()
 
@@ -159,24 +155,6 @@ class GeneralEmailBackendTests(FlaskTestCase):
 
 
 class BaseEmailBackendTests(object):
-    email_backend = None
-
-    def setUp(self):
-        self.app = Flask(__name__)
-        self.app.config.from_object(self)
-
-        self.assertTrue(self.app.testing)
-
-        # self.mail = Mail(self.app)
-        self.app.config['EMAIL_BACKEND'] = self.email_backend
-
-        self.ctx = self.app.test_request_context()
-        self.ctx.push()
-
-    def tearDown(self):
-
-        self.ctx.pop()
-
     def assertStartsWith(self, first, second):
         if not first.startswith(second):
             self.longMessage = True
