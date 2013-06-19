@@ -11,7 +11,7 @@ class Mail(BaseMail):
     :param \*\*kwargs: Options to be passed to :meth:`init_app`
     """
 
-    def init_app(self, app, stream=None, **kwargs):
+    def init_app(self, app, **kwargs):
         """
         :arg app: Flask application instance
         :keyword stream: Stream to write to
