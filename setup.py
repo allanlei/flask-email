@@ -18,7 +18,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='Flask-Email',
-    version='1.4.3',
+    version='1.4.4',
     url='https://github.com/allanlei/flask-email',
     license='BSD',
     author='Allan Lei',
